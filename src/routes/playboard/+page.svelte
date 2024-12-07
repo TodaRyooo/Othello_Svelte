@@ -13,10 +13,18 @@
   )
   let isWhiteTurn = Math.random() > 0.5
 
+  const toggleTurn = (col: number, row: number) => {
+    const tmp = [...data]
+    if (!tmp[col][row].isBlank) return
+    tmp[col][row].isBlank = false
+    isWhiteTurn = !isWhiteTurn
+  }
+
   //TODO: 白の時の反転操作のみ
   const toggleColor = (col: number, row: number) => {
     const tmp = [...data]
-    tmp[col][row].isBlank = false
+    if (!data[col][row].isBlank) return
+
     isWhiteTurn ? (tmp[col][row].isWhite = true) : (tmp[col][row].isWhite = false)
 
     findReversibleTiles(tmp, col, row, 0, 1, isWhiteTurn)
@@ -65,8 +73,6 @@
       })
     }
   }
-
-  const toggleTurn = () => (isWhiteTurn = !isWhiteTurn)
 </script>
 
 <div class="container">
@@ -82,7 +88,7 @@
           class="square"
           on:mousedown={() => {
             toggleColor(outerIndex, innerIndex)
-            toggleTurn()
+            toggleTurn(outerIndex, innerIndex)
           }}
           style="
           width: calc(80vh / {GRID_SIZE}); 
