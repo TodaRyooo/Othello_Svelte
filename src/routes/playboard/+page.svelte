@@ -1,8 +1,8 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte'
 
-  let Ddata = Array.from({ length: 4 }, (_, colId) =>
-    Array.from({ length: 4 }, (_, lowId) => ({
+  let Ddata = Array.from({ length: 6 }, (_, colId) =>
+    Array.from({ length: 6 }, (_, lowId) => ({
       colId,
       lowId,
       isWhite: false,
@@ -10,8 +10,7 @@
     }))
   )
   let turn = true
-  let random = Math.trunc(Math.random() * 100)
-  random % 2 === 0 ? (turn = true) : (turn = false)
+  let random = Math.random() < 0.5
 
   const toggleTurn = () => (turn = !turn)
   //TODO: 白の時の反転操作のみ
@@ -22,6 +21,33 @@
       tmp[col][low].isWhite = !tmp[col][low].isWhite
       Ddata = tmp
     })()
+
+    let arr = []
+    //TODO: 右方向への探索
+    for (let index = low + 1; index <= 5; index++) {
+      if (tmp[col][index].isBlank) break
+      if (tmp[col][index].isWhite) break
+      else arr.push({ arrCol: col, arrLow: index })
+    }
+
+    //TODO: 最初に見つけた白までの黒を反転させる
+    let first = { objCol: undefined, objLow: undefined }
+
+    arr.map(({ arrCol, arrLow }) => {
+      if (arrLow + 1 > tmp[0].length) undefined
+      else {
+        tmp[arrCol][arrLow + 1].isWhite
+          ? (first = { objCol: arrCol, objLow: arrLow + 1 })
+          : undefined
+      }
+    })
+    if (first.objLow !== undefined) {
+      for (let index = low + 1; index < first.objLow; index++) tmp[col][index].isWhite = true
+    }
+
+    console.log('first', first)
+
+    Ddata = tmp
   }
 </script>
 
@@ -39,7 +65,6 @@
           on:mousedown={() => {
             toggleTurn()
             toggleColor(outerIndex, innerIndex)
-            //   toggleWhiteColor(index, data)
           }}
           style="background-color: {Ddata[outerIndex][innerIndex].isBlank
             ? '#3b3b3b'
@@ -74,8 +99,8 @@
   }
 
   .square {
-    width: calc(80vh / 4);
-    height: calc(80vh / 4);
+    width: calc(80vh / 6);
+    height: calc(80vh / 6);
     outline: 1px solid white;
     cursor: pointer;
     color: red;
