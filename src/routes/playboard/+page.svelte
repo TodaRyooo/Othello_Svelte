@@ -74,7 +74,7 @@
   <h1>{isWhiteTurn ? 'white turn' : 'black turn'}</h1>
   <div class="board">
     {#each data as outerData, outerIndex}
-      {#each outerData as innerData, innerIndex}
+      {#each outerData as _, innerIndex}
         <div
           id="sq"
           role="button"
@@ -120,8 +120,6 @@
   }
 
   .square {
-    /* width: calc(80vh / 6); */
-    /* height: calc(80vh / 6); */
     outline: 1px solid white;
     cursor: pointer;
     color: red;
