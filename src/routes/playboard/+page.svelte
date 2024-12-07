@@ -14,40 +14,54 @@
 
   const toggleTurn = () => (turn = !turn)
   //TODO: 白の時の反転操作のみ
-  const toggleColor = (col, low) => {
-    const tmp = Ddata
-    ;(() => {
-      tmp[col][low].isBlank = false
-      tmp[col][low].isWhite = !tmp[col][low].isWhite
-      Ddata = tmp
-    })()
+  const toggleColor = (col: number, low: number) => {
+    const tmp = [...Ddata]
+    tmp[col][low].isBlank = false
+    tmp[col][low].isWhite = !tmp[col][low].isWhite
 
-    let arr = []
-    //TODO: 右方向への探索
-    for (let index = low + 1; index <= 5; index++) {
-      if (tmp[col][index].isBlank) break
-      if (tmp[col][index].isWhite) break
-      else arr.push({ arrCol: col, arrLow: index })
-    }
-
-    //TODO: 最初に見つけた白までの黒を反転させる
-    let first = { objCol: undefined, objLow: undefined }
-
-    arr.map(({ arrCol, arrLow }) => {
-      if (arrLow + 1 > tmp[0].length) undefined
-      else {
-        tmp[arrCol][arrLow + 1].isWhite
-          ? (first = { objCol: arrCol, objLow: arrLow + 1 })
-          : undefined
-      }
-    })
-    if (first.objLow !== undefined) {
-      for (let index = low + 1; index < first.objLow; index++) tmp[col][index].isWhite = true
-    }
-
-    console.log('first', first)
+    findReversibleTiles(tmp, col, low, 0, 1)
+    findReversibleTiles(tmp, col, low, 0, -1)
+    findReversibleTiles(tmp, col, low, 1, 0)
+    findReversibleTiles(tmp, col, low, -1, 0)
+    findReversibleTiles(tmp, col, low, 1, 1)
+    findReversibleTiles(tmp, col, low, 1, -1)
+    findReversibleTiles(tmp, col, low, -1, 1)
+    findReversibleTiles(tmp, col, low, -1, -1)
 
     Ddata = tmp
+  }
+
+  const findReversibleTiles = (
+    grid: typeof Ddata,
+    col: number,
+    low: number,
+    colStep: number,
+    lowStep: number
+  ) => {
+    let arr = []
+    let found = false
+
+    const size = grid.length
+
+    for (
+      let [colIndex, lowIndex] = [col + colStep, low + lowStep];
+      colIndex >= 0 && colIndex < size && lowIndex >= 0 && lowIndex < size;
+      colIndex += colStep, lowIndex += lowStep
+    ) {
+      if (grid[colIndex][lowIndex].isBlank) break // 空のマスがあれば終了
+      if (grid[colIndex][lowIndex].isWhite) {
+        found = true
+        break
+      }
+      arr.push({ arrCol: colIndex, arrLow: lowIndex }) // 黒のマスを記録
+    }
+
+    // 反転処理
+    if (found) {
+      arr.forEach(({ arrCol, arrLow }) => {
+        grid[arrCol][arrLow].isWhite = true // 黒を白に反転
+      })
+    }
   }
 </script>
 
