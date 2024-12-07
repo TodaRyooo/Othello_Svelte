@@ -1,42 +1,43 @@
 <script lang="ts">
   import { onMount } from 'svelte'
 
-  let Ddata = Array.from({ length: 6 }, (_, colId) =>
-    Array.from({ length: 6 }, (_, lowId) => ({
+  let GRID_SIZE = 8
+
+  let data = Array.from({ length: GRID_SIZE }, (_, colId) =>
+    Array.from({ length: GRID_SIZE }, (_, rowId) => ({
       colId,
-      lowId,
+      rowId,
       isWhite: false,
       isBlank: true
     }))
   )
-  let turn = true
-  let random = Math.random() < 0.5
+  let isWhiteTurn = Math.random() > 0.5
 
-  const toggleTurn = () => (turn = !turn)
   //TODO: 白の時の反転操作のみ
-  const toggleColor = (col: number, low: number) => {
-    const tmp = [...Ddata]
-    tmp[col][low].isBlank = false
-    tmp[col][low].isWhite = !tmp[col][low].isWhite
+  const toggleColor = (col: number, row: number) => {
+    const tmp = [...data]
+    tmp[col][row].isBlank = false
+    isWhiteTurn ? (tmp[col][row].isWhite = true) : (tmp[col][row].isWhite = false)
 
-    findReversibleTiles(tmp, col, low, 0, 1)
-    findReversibleTiles(tmp, col, low, 0, -1)
-    findReversibleTiles(tmp, col, low, 1, 0)
-    findReversibleTiles(tmp, col, low, -1, 0)
-    findReversibleTiles(tmp, col, low, 1, 1)
-    findReversibleTiles(tmp, col, low, 1, -1)
-    findReversibleTiles(tmp, col, low, -1, 1)
-    findReversibleTiles(tmp, col, low, -1, -1)
+    findReversibleTiles(tmp, col, row, 0, 1, isWhiteTurn)
+    findReversibleTiles(tmp, col, row, 0, -1, isWhiteTurn)
+    findReversibleTiles(tmp, col, row, 1, 0, isWhiteTurn)
+    findReversibleTiles(tmp, col, row, -1, 0, isWhiteTurn)
+    findReversibleTiles(tmp, col, row, 1, 1, isWhiteTurn)
+    findReversibleTiles(tmp, col, row, 1, -1, isWhiteTurn)
+    findReversibleTiles(tmp, col, row, -1, 1, isWhiteTurn)
+    findReversibleTiles(tmp, col, row, -1, -1, isWhiteTurn)
 
-    Ddata = tmp
+    data = tmp
   }
 
   const findReversibleTiles = (
-    grid: typeof Ddata,
+    grid: typeof data,
     col: number,
-    low: number,
+    row: number,
     colStep: number,
-    lowStep: number
+    rowStep: number,
+    isWhiteTurn: boolean
   ) => {
     let arr = []
     let found = false
@@ -44,32 +45,35 @@
     const size = grid.length
 
     for (
-      let [colIndex, lowIndex] = [col + colStep, low + lowStep];
-      colIndex >= 0 && colIndex < size && lowIndex >= 0 && lowIndex < size;
-      colIndex += colStep, lowIndex += lowStep
+      let [colIndex, rowIndex] = [col + colStep, row + rowStep];
+      colIndex >= 0 && colIndex < size && rowIndex >= 0 && rowIndex < size;
+      colIndex += colStep, rowIndex += rowStep
     ) {
-      if (grid[colIndex][lowIndex].isBlank) break // 空のマスがあれば終了
-      if (grid[colIndex][lowIndex].isWhite) {
+      if (grid[colIndex][rowIndex].isBlank) break // 空のマスがあれば終了
+
+      if (isWhiteTurn ? grid[colIndex][rowIndex].isWhite : !grid[colIndex][rowIndex].isWhite) {
         found = true
         break
       }
-      arr.push({ arrCol: colIndex, arrLow: lowIndex }) // 黒のマスを記録
+      arr.push({ arrCol: colIndex, arrRow: rowIndex }) // 反転できるマスを記録
     }
 
     // 反転処理
     if (found) {
-      arr.forEach(({ arrCol, arrLow }) => {
-        grid[arrCol][arrLow].isWhite = true // 黒を白に反転
+      arr.forEach(({ arrCol, arrRow: arrRow }) => {
+        grid[arrCol][arrRow].isWhite = !grid[arrCol][arrRow].isWhite // マスを反転
       })
     }
   }
+
+  const toggleTurn = () => (isWhiteTurn = !isWhiteTurn)
 </script>
 
 <div class="container">
-  <h1>{turn ? 'your turn' : 'enemy turn'}</h1>
-  <h3>{random}</h3>
+  <p>{GRID_SIZE}</p>
+  <h1>{isWhiteTurn ? 'white turn' : 'black turn'}</h1>
   <div class="board">
-    {#each Ddata as outerData, outerIndex}
+    {#each data as outerData, outerIndex}
       {#each outerData as innerData, innerIndex}
         <div
           id="sq"
@@ -77,12 +81,15 @@
           tabindex="0"
           class="square"
           on:mousedown={() => {
-            toggleTurn()
             toggleColor(outerIndex, innerIndex)
+            toggleTurn()
           }}
-          style="background-color: {Ddata[outerIndex][innerIndex].isBlank
+          style="
+          width: calc(80vh / {GRID_SIZE}); 
+          height: calc(80vh / {GRID_SIZE});
+           background-color: {data[outerIndex][innerIndex].isBlank
             ? '#3b3b3b'
-            : Ddata[outerIndex][innerIndex].isWhite
+            : data[outerIndex][innerIndex].isWhite
               ? 'white'
               : 'black'}"
         >
@@ -113,8 +120,8 @@
   }
 
   .square {
-    width: calc(80vh / 6);
-    height: calc(80vh / 6);
+    /* width: calc(80vh / 6); */
+    /* height: calc(80vh / 6); */
     outline: 1px solid white;
     cursor: pointer;
     color: red;
