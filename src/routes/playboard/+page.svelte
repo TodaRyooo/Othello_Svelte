@@ -1,9 +1,12 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import type { boardData } from '@/types/type'
+  import findReversibleTiles from './whiteLogic'
+  import { gridCount } from '@/lib/stores/setting'
 
-  let GRID_SIZE = 8
+  let GRID_SIZE = 0
+  gridCount.subscribe((value) => (GRID_SIZE = value))
 
-  let data = Array.from({ length: GRID_SIZE }, (_, colId) =>
+  let data: boardData[][] = Array.from({ length: GRID_SIZE }, (_, colId) =>
     Array.from({ length: GRID_SIZE }, (_, rowId) => ({
       colId,
       rowId,
@@ -12,11 +15,13 @@
     }))
   )
   let isWhiteTurn = Math.random() > 0.5
+  let clickCount = 0
 
   const toggleTurn = (col: number, row: number) => {
     const tmp = [...data]
     if (!tmp[col][row].isBlank) return
     tmp[col][row].isBlank = false
+    clickCount++
     isWhiteTurn = !isWhiteTurn
   }
 
@@ -38,44 +43,10 @@
 
     data = tmp
   }
-
-  const findReversibleTiles = (
-    grid: typeof data,
-    col: number,
-    row: number,
-    colStep: number,
-    rowStep: number,
-    isWhiteTurn: boolean
-  ) => {
-    let arr = []
-    let found = false
-
-    const size = grid.length
-
-    for (
-      let [colIndex, rowIndex] = [col + colStep, row + rowStep];
-      colIndex >= 0 && colIndex < size && rowIndex >= 0 && rowIndex < size;
-      colIndex += colStep, rowIndex += rowStep
-    ) {
-      if (grid[colIndex][rowIndex].isBlank) break // 空のマスがあれば終了
-
-      if (isWhiteTurn ? grid[colIndex][rowIndex].isWhite : !grid[colIndex][rowIndex].isWhite) {
-        found = true
-        break
-      }
-      arr.push({ arrCol: colIndex, arrRow: rowIndex }) // 反転できるマスを記録
-    }
-
-    // 反転処理
-    if (found) {
-      arr.forEach(({ arrCol, arrRow: arrRow }) => {
-        grid[arrCol][arrRow].isWhite = !grid[arrCol][arrRow].isWhite // マスを反転
-      })
-    }
-  }
 </script>
 
 <div class="container">
+  <a href="/">back home</a>
   <p>{GRID_SIZE}</p>
   <h1>{isWhiteTurn ? 'white turn' : 'black turn'}</h1>
   <div class="board">
@@ -98,10 +69,7 @@
             : data[outerIndex][innerIndex].isWhite
               ? 'white'
               : 'black'}"
-        >
-          {outerIndex}
-          {innerIndex}
-        </div>
+        ></div>
       {/each}
     {/each}
   </div>

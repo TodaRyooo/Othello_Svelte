@@ -1,8 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte'
 
-  console.log('qwerty')
-
   let isDragging = false
   let [startX, startY, startWidth, currentX, currentY, currentWidth] = [0, 0, 0, 0, 0, 0]
 
@@ -34,10 +32,11 @@
 </script>
 
 <div class="container">
+  <div id="trail-container" class="trail"></div>
   <div class="hoge">
     <h1>Othello</h1>
     <a href="/playboard">start</a>
-    <a href="/settings">qwerty</a>
+    <a href="/settings">settings</a>
   </div>
   <div id="fuga" class="draggable" bind:this={fuga}>
     {#each Array.from({ length: 16 }) as index}
@@ -54,7 +53,7 @@
     justify-content: center;
     width: 100vw;
     height: 100vh;
-    gap: 8px;
+    gap: 20px;
     overflow: hidden;
   }
 
@@ -63,6 +62,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 4px;
     z-index: 1;
   }
   .draggable {
@@ -74,9 +74,6 @@
     cursor: grab;
     transition: transform 0.01s;
     z-index: 0;
-    &.dragging {
-      cursor: grabbing;
-    }
   }
   .piyo {
     width: calc(100px / 4);
